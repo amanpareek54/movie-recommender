@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Results - Movie Recommender</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+  .actor-list {
+    list-style: none;
+    margin: 5px 0 0 0;
+    padding: 0;
+    color: #fff;
+    font-size: 0.95em;
+  }
+  .actor-list li {
+    margin: 4px 4px 4px 0;
+    padding: 4px 8px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 6px;
+    display: inline-block;
+  }
+  .tagline {
+    font-size: 1.2em;
+    color: #ffdd59;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body style="background: url('{{ url_for('static', filename='Indian+Page+(2).webp') }}') no-repeat center center fixed; background-size: cover;">
+
+  <div class="overlay"></div>
+
+  <div class="container">
+      <h2>Recommendations for "{{ movie_name }}"</h2>
+
+      {% if not_found %}
+        <p class="error">Movie not found in dataset.</p>
+        <a href="/" class="btn">🔍 Search Again</a>
+      {% else %}
+        <div class="cards">
+          {% for rec in recommendations %}
+            <div class="card">
+              <h3>{{ rec.title }} <span>({{ rec.release_date }})</span></h3>
+              <p><strong>Rating:</strong> {{ rec.rating }}</p>
+              <p><strong>Genres:</strong> {{ rec.genre }}</p>
+              <p><strong>Actors:</strong></p>
+              <ul class="actor-list">
+                {% for actor in rec.actors %}
+                  <li>{{ actor }}</li>
+                {% endfor %}
+              </ul>
+              <p><strong>Story:</strong> {{ rec.story }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <br>
+        <a href="/" class="btn">🔙 Search Again</a>
+      {% endif %}
+  </div>
+
+  <footer>
+    <p>Created by Aman Pareek | amanpareek690@gmail.com | Maharaja Ganga Singh University, Computer Department, MSc CS</p>
+  </footer>
+
+</body>
+</html>

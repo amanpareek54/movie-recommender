@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Recommender</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="background: url('{{ url_for('static', filename='Indian+Page+(2).webp') }}') no-repeat center center fixed; background-size: cover;">
+  <div class="overlay"></div>
+
+  <!-- Project Info Banner -->
+  <div class="project-info">
+    <h1>🎬 Movie Recommender</h1>
+    <p class="tagline">Discover Movies You’ll Love Instantly</p>
+    <p class="creator">Created by <strong>Aman Pareek</strong> | <a href="mailto:amanpareek690@gmail.com">amanpareek690@gmail.com</a></p>
+    <p class="university">Maharaja Ganga Singh University, Computer Department, MSc CS LE</p>
+  </div>
+
+  <!-- Search Container -->
+  <div class="search-container">
+    <form action="/recommend" method="POST">
+      <div class="search-box">
+        <input type="text" id="search-box" name="movie_name" placeholder="Search a movie or actor..." autocomplete="off">
+        <ul id="suggestions"></ul>
+      </div>
+      <button type="submit" class="btn">Recommend</button>
+    </form>
+  </div>
+
+  <script>
+    const searchBox = document.getElementById("search-box");
+    const suggestions = document.getElementById("suggestions");
+
+    searchBox.addEventListener("input", async () => {
+      const query = searchBox.value;
+      if (!query) { suggestions.innerHTML = ""; return; }
+
+      const res = await fetch(`/search?q=${query}`);
+      const data = await res.json();
+      suggestions.innerHTML = data.map(title => `<li onclick="selectMovie('${title}')">${title}</li>`).join("");
+    });
+
+    function selectMovie(title) {
+      searchBox.value = title;
+      suggestions.innerHTML = "";
+    }
+  </script>
+</body>
+</html>

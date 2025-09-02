@@ -1,0 +1,174 @@
+/* Overlay for dark gradient */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 0;
+}
+
+/* Project Info Banner */
+.project-info {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 30px auto 50px auto;
+  padding: 20px 30px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 15px;
+  text-align: center;
+  color: #ffdd59;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.project-info h1 {
+  font-size: 2.8em;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 8px #000;
+}
+
+.project-info .tagline {
+  font-size: 1.3em;
+  margin-bottom: 10px;
+}
+
+.project-info .creator, .project-info .university {
+  font-size: 1em;
+  margin: 3px 0;
+}
+
+/* Containers */
+.search-container, .container {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto 80px auto;
+  background: rgba(0,0,0,0.7);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+h1, h2 {
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  color: #ffdd59;
+  text-shadow: 2px 2px 8px #000;
+}
+
+/* Input and button */
+.search-box { 
+  position: relative;  
+  width: 70%;
+  margin: 0 auto;
+}
+
+input[type="text"] {
+  padding: 12px 15px;
+  width: 100%;         
+  border-radius: 50px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+button.btn, a.btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(90deg,#ff512f,#dd2476);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  margin-top: 10px;
+}
+
+button.btn:hover, a.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+}
+
+/* Suggestions dropdown */
+#suggestions {
+  position: absolute;
+  top: 100%;          
+  left: 0;            
+  width: 100%;        
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+  background: rgba(255,255,255,0.95);
+  color: #000;
+  border-radius: 10px;
+  z-index: 3;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#suggestions li {
+  padding: 12px 15px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+#suggestions li:hover {
+  background: #ffdd59;
+  color: #000;
+}
+
+/* Recommendation cards */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.card {
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 15px;
+  width: 280px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+  transition: transform 0.3s ease;
+  text-align: left;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #ffdd59;
+}
+
+.card p {
+  font-size: 0.9em;
+  line-height: 1.4em;
+  color: #fff;
+}
+
+/* Error */
+.error {
+  color: #ff6b6b;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  color: #ffdd59;
+  margin: 40px 0;
+  font-size: 0.95em;
+}
+footer a { color: #ffdd59; text-decoration: none; }
+footer a:hover { text-decoration: underline; }
