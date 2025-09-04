@@ -27,7 +27,7 @@ def split_multi(s: str) -> list[str]:
 def top2_actors_from_string(s: str) -> list[str]:
     tokens = split_multi(s)
     top2 = tokens[:2]
-    return [t.replace("_", " ").title() for t in top2]
+    return [t.strip().title() for t in top2]
 
 def normalize_title(t: str) -> str:
     t = nz(t).lower()
@@ -61,7 +61,6 @@ movies_df["actors"] = movies_df["actors"].apply(nz)
 movies_df["actors_top2"] = movies_df["actors"].apply(top2_actors_from_string)
 movies_df["genres_pretty"] = movies_df["genres"].apply(pretty_genres)
 
-# Combined text for similarity
 movies_df["combined_text"] = (
     movies_df["story"] + " " + movies_df["genres"] + " " + movies_df["actors"]
 )
@@ -78,19 +77,26 @@ movies_df["title_norm"] = movies_df["title_x"].apply(normalize_title)
 idx_by_title = pd.Series(movies_df.index, index=movies_df["title_norm"]).drop_duplicates()
 all_norm_titles = movies_df["title_norm"].tolist()
 
-# Flatten all actors for autocomplete (FULL actor list)
+# Flatten all actors for autocomplete
 all_actors_set = set()
 for s in movies_df["actors"]:
     for a in split_multi(s):
         all_actors_set.add(a.lower())
 all_actors_list = sorted(list(all_actors_set))
 
+# Genre list for autocomplete
+all_genres_set = set()
+for g in movies_df["genres"]:
+    for gg in split_multi(g):
+        all_genres_set.add(gg.lower())
+all_genres_list = sorted(list(all_genres_set))
+
 # -------------------- Public API --------------------
 def search_titles(query: str, limit: int = 10) -> list[str]:
     q = normalize_title(query)
     if not q:
         return []
-    mask = movies_df["title_norm"].str.contains(re.escape(q), na=False)
+    mask = movies_df["title_norm"].str.contains(q, na=False)
     hits = movies_df.loc[mask, "title_x"].head(limit).tolist()
     return hits
 
@@ -101,8 +107,14 @@ def search_actors(query: str, limit: int = 10) -> list[str]:
     matches = [a.title() for a in all_actors_list if q in a]
     return matches[:limit]
 
+def search_genres(query: str, limit: int = 10) -> list[str]:
+    q = query.lower().strip()
+    if not q:
+        return []
+    matches = [f"Genre: {g.title()}" for g in all_genres_list if q in g]
+    return matches[:limit]
+
 def _best_match_index(movie_name: str):
-    """Exact match only, no fuzzy"""
     q = normalize_title(movie_name)
     if q in idx_by_title:
         return int(idx_by_title[q])
@@ -111,7 +123,23 @@ def _best_match_index(movie_name: str):
 def recommend(movie_name: str, top_n: int = 5) -> pd.DataFrame:
     idx = _best_match_index(movie_name)
     if idx is None:
-        return pd.DataFrame()
+        # Partial match
+        partial_mask = movies_df["title_norm"].str.contains(normalize_title(movie_name))
+        filtered = movies_df[partial_mask].copy()
+        if filtered.empty:
+            return pd.DataFrame()
+        filtered["imdb_rating"] = pd.to_numeric(filtered["imdb_rating"], errors="coerce")
+        filtered = filtered.sort_values(by="imdb_rating", ascending=False).head(top_n)
+        out = pd.DataFrame({
+            "title": filtered["title_x"].values,
+            "rating": filtered["imdb_rating"].fillna("").values,
+            "actors": filtered["actors"].apply(lambda s: [a.strip().title() for a in split_multi(s)]).values,
+            "genre": filtered["genres_pretty"].values,
+            "release_date": filtered["release_date"].values,
+            "story": filtered["story"].fillna("").values
+        })
+        return out
+
     sims = list(enumerate(cosine_sim[idx]))
     sims = sorted(sims, key=lambda x: x[1], reverse=True)
     picked = []
@@ -125,7 +153,7 @@ def recommend(movie_name: str, top_n: int = 5) -> pd.DataFrame:
     out = pd.DataFrame({
         "title": recs["title_x"].values,
         "rating": recs["imdb_rating"].fillna("").values,
-        "actors": recs["actors"].apply(lambda s: [a.title() for a in split_multi(s)]).values,
+        "actors": recs["actors"].apply(lambda s: [a.strip().title() for a in split_multi(s)]).values,
         "genre": recs["genres_pretty"].values,
         "release_date": recs["release_date"].values,
         "story": recs["story"].fillna("").values
@@ -141,9 +169,41 @@ def get_movies_by_actor(actor_name: str) -> pd.DataFrame:
     out = pd.DataFrame({
         "title": filtered["title_x"].values,
         "rating": filtered["imdb_rating"].fillna("").values,
-        "actors": filtered["actors"].apply(lambda s: [a.title() for a in split_multi(s)]).values,
+        "actors": filtered["actors"].apply(lambda s: [a.strip().title() for a in split_multi(s)]).values,
         "genre": filtered["genres_pretty"].values,
         "release_date": filtered["release_date"].values,
         "story": filtered["story"].fillna("").values
+    })
+    return out
+
+def get_movies_by_genre(genre: str, limit: int = 10) -> pd.DataFrame:
+    genre = genre.lower().strip()
+    mask = movies_df["genres"].apply(lambda s: genre in s.lower())
+    filtered = movies_df[mask].copy()
+    if filtered.empty:
+        return pd.DataFrame()
+    filtered["imdb_rating"] = pd.to_numeric(filtered["imdb_rating"], errors="coerce")
+    filtered = filtered.sort_values(by="imdb_rating", ascending=False).head(limit)
+    out = pd.DataFrame({
+        "title": filtered["title_x"].values,
+        "rating": filtered["imdb_rating"].fillna("").values,
+        "actors": filtered["actors"].apply(lambda s: [a.strip().title() for a in split_multi(s)]).values,
+        "genre": filtered["genres_pretty"].values,
+        "release_date": filtered["release_date"].values,
+        "story": filtered["story"].fillna("").values
+    })
+    return out
+
+def get_top_rated_movies(limit: int = 10) -> pd.DataFrame:
+    df = movies_df.copy()
+    df["imdb_rating"] = pd.to_numeric(df["imdb_rating"], errors="coerce")
+    df = df.sort_values(by="imdb_rating", ascending=False).head(limit)
+    out = pd.DataFrame({
+        "title": df["title_x"].values,
+        "rating": df["imdb_rating"].fillna("").values,
+        "actors": df["actors"].apply(lambda s: [a.strip().title() for a in split_multi(s)]).values,
+        "genre": df["genres_pretty"].values,
+        "release_date": df["release_date"].values,
+        "story": df["story"].fillna("").values
     })
     return out
